@@ -43,8 +43,12 @@ async function createSession(model: Uint8Array): Promise<Backend> {
     try {
       const gpuOrt = await import('onnxruntime-web/webgpu');
       gpuOrt.env.wasm.numThreads = 1;
+      // The int8 operators have no WebGPU kernels and run on the WebAssembly
+      // provider inside the same session; onnxruntime warns about that split.
+      gpuOrt.env.logLevel = 'error';
       session = await gpuOrt.InferenceSession.create(model, {
         executionProviders: ['webgpu', 'wasm'],
+        logSeverityLevel: 3,
       });
       ort = gpuOrt;
       return 'webgpu';
