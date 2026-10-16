@@ -157,8 +157,14 @@ def train(
     device_name: str = "auto",
     max_steps: int | None = None,
     log: Callable[[str], None] = print,
+    resume: bool = False,
 ) -> Path:
-    """Train and return the path of the best checkpoint."""
+    """Train and return the path of the best checkpoint.
+
+    Every epoch also writes runs/<run>/last.pt with the optimiser, scheduler
+    and random-number state, so `resume=True` continues an interrupted run
+    exactly where it stopped.
+    """
     seed_everything(cfg.seed)
     rng = np.random.default_rng(cfg.seed)
     device = pick_device(device_name)
@@ -188,11 +194,29 @@ def train(
 
     run_dir.mkdir(parents=True, exist_ok=True)
     best_path = run_dir / "best.pt"
+    last_path = run_dir / "last.pt"
     log_path = run_dir / "log.jsonl"
     best_cer = math.inf
     stale = 0
     step = 0
-    for epoch in range(cfg.train.epochs):
+    start_epoch = 0
+    if resume and last_path.exists():
+        state = torch.load(last_path, map_location="cpu", weights_only=True)
+        model.load_state_dict(state["model"])
+        optimiser.load_state_dict(state["optimiser"])
+        scheduler.load_state_dict(state["scheduler"])
+        rng.bit_generator.state = state["numpy_rng"]
+        torch.set_rng_state(state["torch_rng"])
+        start_epoch, step = state["epoch"] + 1, state["step"]
+        best_cer, stale = state["best_cer"], state["stale"]
+        log(f"resumed after epoch {state['epoch']} (step {step}, best CER {best_cer:.4f})")
+    else:
+        if resume:
+            log(f"no checkpoint to resume in {run_dir}; starting fresh")
+        log_path.write_text("", encoding="utf-8")
+    for epoch in range(start_epoch, cfg.train.epochs):
+        if stale >= cfg.train.patience:
+            break
         model.train()
         started = time.time()
         losses = []
@@ -225,9 +249,6 @@ def train(
             f"{val_name}_wer": round(rates.wer, 4),
             "seconds": round(time.time() - started, 1),
         }
-        with log_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(record) + "\n")
-        log(json.dumps(record))
         if rates.cer < best_cer:
             best_cer, stale = rates.cer, 0
             save_checkpoint(
@@ -238,6 +259,23 @@ def train(
             )
         else:
             stale += 1
+        torch.save(
+            {
+                "model": model.state_dict(),
+                "optimiser": optimiser.state_dict(),
+                "scheduler": scheduler.state_dict(),
+                "numpy_rng": rng.bit_generator.state,
+                "torch_rng": torch.get_rng_state(),
+                "epoch": epoch,
+                "step": step,
+                "best_cer": best_cer,
+                "stale": stale,
+            },
+            last_path,
+        )
+        with log_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record) + "\n")
+        log(json.dumps(record))
         if stale >= cfg.train.patience or (max_steps is not None and step >= max_steps):
             break
     log(f"best {val_name} CER {best_cer:.4f} -> {best_path}")

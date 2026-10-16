@@ -97,12 +97,15 @@ def train_cmd(
     run: Annotated[str, typer.Option(help="Run name under pipeline/runs/.")] = "main",
     device: Annotated[str, typer.Option(help="auto, mps, cuda or cpu.")] = "auto",
     max_steps: Annotated[int | None, typer.Option(help="Stop after this many steps.")] = None,
+    resume: Annotated[
+        bool, typer.Option(help="Continue from runs/<run>/last.pt if it exists.")
+    ] = False,
 ) -> None:
     """Train the CRNN; the best checkpoint is runs/<run>/best.pt."""
     from .train import train
 
     cfg, _, _, cache = _setup(config, data_dir)
-    train(cfg, cache, RUNS_DIR / run, device, max_steps)
+    train(cfg, cache, RUNS_DIR / run, device, max_steps, resume=resume)
 
 
 @app.command("evaluate")
