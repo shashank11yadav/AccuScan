@@ -1,0 +1,44 @@
+{
+  "samples": [
+    {
+      "file": "sample-1.png",
+      "text": "hello world",
+      "font": "handlee"
+    },
+    {
+      "file": "sample-2.png",
+      "text": "Meet at 7:30pm",
+      "font": "nothingyoucoulddo"
+    },
+    {
+      "file": "sample-3.png",
+      "text": "buy milk and eggs",
+      "font": "mansalva"
+    },
+    {
+      "file": "sample-4.png",
+      "text": "Thank you!",
+      "font": "delius"
+    },
+    {
+      "file": "sample-5.png",
+      "text": "the quick brown fox",
+      "font": "sriracha"
+    },
+    {
+      "file": "sample-6.png",
+      "text": "Call me on Friday",
+      "font": "grapenuts"
+    },
+    {
+      "file": "sample-7.png",
+      "text": "42 Baker Street",
+      "font": "badscript"
+    },
+    {
+      "file": "sample-8.png",
+      "text": "see you soon",
+      "font": "courgette"
+    }
+  ]
+}

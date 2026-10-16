@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0-stub",
+  "stub": true,
+  "featureVersion": 1,
+  "fps": null,
+  "featureDim": 64,
+  "classes": 96,
+  "blank": 0,
+  "input": {
+    "name": "image",
+    "height": 64,
+    "maxWidth": 1024,
+    "widthMultiple": 4
+  },
+  "output": {
+    "name": "log_probs",
+    "downsample": 4
+  },
+  "parameters": 4048448,
+  "bytes": 4811287,
+  "quantization": "int8-dynamic",
+  "decoder": {
+    "beamWidth": 16,
+    "lmWeight": 0.3,
+    "prune": 0.001,
+    "maxDropPerWord": 10.0
+  },
+  "defaultMode": "free",
+  "trainedOn": null,
+  "metrics": null
+}

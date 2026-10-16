@@ -1,0 +1,52 @@
+# Default configuration for every `accuscan` command. Paths are relative to the
+# data directory (`--data-dir`, else $DATA_DIR, else ../_datasets next to the repo).
+seed = 20261016
+
+[paths]
+fonts = "fonts"
+gnhk = "gnhk"
+cache = "accuscan"  # synth shards, GNHK crops and the canvas test set
+
+[synth]
+train_count = 150000
+val_count = 3000
+canvas_test_count = 2000
+shard_size = 2500
+canvas_fraction = 0.35  # share of training lines drawn in the canvas style
+heldout_text_fraction = 0.1
+
+[gnhk]
+val_fraction = 0.1  # of training pages, chosen by page id
+
+[model]
+channels = [32, 64, 128, 224, 320]
+hidden = 256
+layers = 2
+dropout = 0.2
+
+[train]
+epochs = 24
+batch_size = 48
+max_batch_columns = 12288  # batch size x width cap (48 x 256), bounds GPU memory
+lr = 1e-3
+weight_decay = 1e-4
+grad_clip = 5.0
+synth_per_epoch = 40000  # synthetic lines drawn per epoch (fresh sample each epoch)
+gnhk_upsample = 2        # each GNHK training crop appears this many times per epoch
+patience = 5             # epochs without a better validation CER before stopping
+num_workers = 0
+# Curriculum: [first_epoch, max_label_length] pairs; short labels first.
+curriculum = [[0, 8], [2, 16], [4, 32], [6, 1000]]
+
+[evaluate]
+gate_cer = 0.15          # canvas CER at or below this opens the demo in free writing
+beam_width = 16
+lm_weight = 0.3
+latency_widths = [128, 256, 512]
+
+[export]
+opset = 17
+quantize = true
+# The first convolutions have few weights but the largest feature maps;
+# keeping them in float32 avoids slow integer convolutions in WebAssembly.
+float_convs = 4
