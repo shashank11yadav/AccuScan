@@ -4,7 +4,7 @@
 # footer and committed gzipped under src/accuscan/resources/corpus/; they are
 # the sentence source for synthetic lines. All books contribute word counts to
 # the dictionary-mode lexicon. The files on the distributor's site are
-# occasionally regenerated, so a pin can go stale; the committed outputs are
+# occasionally rebuilt, so a pin can go stale; the committed outputs are
 # what the pipeline uses, and `accuscan resources` only rebuilds them.
 
 # ENABLE2K word list (public domain), mirrored in dolph/dictionary.
