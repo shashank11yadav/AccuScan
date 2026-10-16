@@ -1,0 +1,165 @@
+# Public-domain text sources, retrieved 2026-10-16.
+#
+# Books marked `bundle = true` are stripped of the distributor's header and
+# footer and committed gzipped under src/accuscan/resources/corpus/; they are
+# the sentence source for synthetic lines. All books contribute word counts to
+# the dictionary-mode lexicon. The files on the distributor's site are
+# occasionally regenerated, so a pin can go stale; the committed outputs are
+# what the pipeline uses, and `accuscan resources` only rebuilds them.
+
+# ENABLE2K word list (public domain), mirrored in dolph/dictionary.
+[wordlist]
+url = "https://raw.githubusercontent.com/dolph/dictionary/233d25a56b9ac8bef906916ccf091a976995cce0/enable1.txt"
+sha256 = "3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89"
+
+[[book]]
+id = "1342"
+title = "Pride and Prejudice"
+author = "Jane Austen"
+url = "https://www.gutenberg.org/cache/epub/1342/pg1342.txt"
+sha256 = "3f6bb9d6f78e0293b56acd4714dd68cb7d6d1d293402031ce9d5a216bcaf9d75"
+bundle = true
+
+[[book]]
+id = "1661"
+title = "The Adventures of Sherlock Holmes"
+author = "Arthur Conan Doyle"
+url = "https://www.gutenberg.org/cache/epub/1661/pg1661.txt"
+sha256 = "922e2a12ccb43a4c9544c260b2166c6ad2097aeb5957faeee113f173bb857cd0"
+bundle = true
+
+[[book]]
+id = "11"
+title = "Alice's Adventures in Wonderland"
+author = "Lewis Carroll"
+url = "https://www.gutenberg.org/cache/epub/11/pg11.txt"
+sha256 = "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e"
+bundle = true
+
+[[book]]
+id = "55"
+title = "The Wonderful Wizard of Oz"
+author = "L. Frank Baum"
+url = "https://www.gutenberg.org/cache/epub/55/pg55.txt"
+sha256 = "969bffab7740d4d8a0bac332d78bd0152ad4a40a2efc52f06c74a9bb6120be75"
+bundle = true
+
+[[book]]
+id = "74"
+title = "The Adventures of Tom Sawyer"
+author = "Mark Twain"
+url = "https://www.gutenberg.org/cache/epub/74/pg74.txt"
+sha256 = "74d77384b123a6360db9ab58463cff8b38df8525fbdc6000c81ee388e1f3cf10"
+bundle = true
+
+[[book]]
+id = "84"
+title = "Frankenstein"
+author = "Mary Shelley"
+url = "https://www.gutenberg.org/cache/epub/84/pg84.txt"
+sha256 = "7810cd483cffcf2cc8a1d8f0d5807931e69d4f48cd14149b8c76f88af82fead3"
+bundle = false
+
+[[book]]
+id = "98"
+title = "A Tale of Two Cities"
+author = "Charles Dickens"
+url = "https://www.gutenberg.org/cache/epub/98/pg98.txt"
+sha256 = "d54c2b80d40a40b982cd88852c6180bb944d95acdb028af3d0e01a1750681784"
+bundle = false
+
+[[book]]
+id = "1260"
+title = "Jane Eyre"
+author = "Charlotte Bronte"
+url = "https://www.gutenberg.org/cache/epub/1260/pg1260.txt"
+sha256 = "13414dee2951c3ee731d76d2ffd822016b2479c892162760c5d0eb2aa5fa7631"
+bundle = false
+
+[[book]]
+id = "76"
+title = "Adventures of Huckleberry Finn"
+author = "Mark Twain"
+url = "https://www.gutenberg.org/cache/epub/76/pg76.txt"
+sha256 = "d617a37aa7ae1e1a93dcde2634db2bccb86824e31e29a55230bdbf77d6872d59"
+bundle = false
+
+[[book]]
+id = "345"
+title = "Dracula"
+author = "Bram Stoker"
+url = "https://www.gutenberg.org/cache/epub/345/pg345.txt"
+sha256 = "96cd16eacdbfebae8fdda5591f66e0cc8ee76be18e0cd1aca02bc00615782d28"
+bundle = false
+
+[[book]]
+id = "2701"
+title = "Moby Dick"
+author = "Herman Melville"
+url = "https://www.gutenberg.org/cache/epub/2701/pg2701.txt"
+sha256 = "b5e88b71a1cda068e9ab1d94344c9d932338ba6da1a66def97a1aecd9cfcc87d"
+bundle = false
+
+[[book]]
+id = "1400"
+title = "Great Expectations"
+author = "Charles Dickens"
+url = "https://www.gutenberg.org/cache/epub/1400/pg1400.txt"
+sha256 = "9a637118af8e953e9764ec603d9b0a032883384d465acac2e27966a80cf1c6f8"
+bundle = false
+
+[[book]]
+id = "174"
+title = "The Picture of Dorian Gray"
+author = "Oscar Wilde"
+url = "https://www.gutenberg.org/cache/epub/174/pg174.txt"
+sha256 = "38f36b510417177aa87a6a24c968e3ec63a447b7df36a9c1a7c5a3f2d9e51547"
+bundle = false
+
+[[book]]
+id = "64317"
+title = "The Great Gatsby"
+author = "F. Scott Fitzgerald"
+url = "https://www.gutenberg.org/cache/epub/64317/pg64317.txt"
+sha256 = "ce760ec377accd352b41bb8f64504a72d7aa18ab3afb42ded2b56cecacf29e35"
+bundle = false
+
+[[book]]
+id = "36"
+title = "The War of the Worlds"
+author = "H. G. Wells"
+url = "https://www.gutenberg.org/cache/epub/36/pg36.txt"
+sha256 = "8417469e3ab664749f7b36ebb85799075818207b0380b54c27d07d592a44117d"
+bundle = false
+
+[[book]]
+id = "5200"
+title = "Metamorphosis"
+author = "Franz Kafka (David Wyllie translation)"
+url = "https://www.gutenberg.org/cache/epub/5200/pg5200.txt"
+sha256 = "0933283a19a4daaef0d412e8f69c74fae126b0a946cb74b8f3c783a8e869830d"
+bundle = false
+
+[[book]]
+id = "1952"
+title = "The Yellow Wallpaper"
+author = "Charlotte Perkins Gilman"
+url = "https://www.gutenberg.org/cache/epub/1952/pg1952.txt"
+sha256 = "20c7788eeae2fe3a0efd51a1f08b6723366a4be0778d65db219149a3522651d4"
+bundle = false
+
+[[book]]
+id = "2591"
+title = "Grimms' Fairy Tales"
+author = "Jacob and Wilhelm Grimm"
+url = "https://www.gutenberg.org/cache/epub/2591/pg2591.txt"
+sha256 = "377ebb8ca06cd8bc0b1015ddb54766c44f50dece731c53bb030f1cc00f54092a"
+bundle = false
+
+[[book]]
+id = "120"
+title = "Treasure Island"
+author = "Robert Louis Stevenson"
+url = "https://www.gutenberg.org/cache/epub/120/pg120.txt"
+sha256 = "5bc08275eacea8640b1aa185c645283bb8c564d7b23df6b03437d229b4fc6ebd"
+bundle = false
