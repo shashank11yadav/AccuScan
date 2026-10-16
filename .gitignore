@@ -1,0 +1,49 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Datasets, caches and checkpoints (they live in ../_datasets or are rebuilt)
+_datasets/
+pipeline/runs/
+pipeline/cache/
+*.pt
+*.ckpt
+*.npz
+*.zip
+*.pkl
+.cache/
+huggingface/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Node / web
+node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+web/blob-report/
+web/playwright/.cache/
+web/public/ort/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
