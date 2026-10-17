@@ -1,0 +1,23 @@
+{
+  "model": "microsoft/trocr-small-handwritten",
+  "revision": "b4648cfa171985a6745f37ddd637e98c0da958ac",
+  "parameters": 61596672,
+  "model_mb": 246.4,
+  "limit": null,
+  "sets": {
+    "gnhk_test_words": {
+      "cer": 0.5143,
+      "wer": 0.8904,
+      "exact_match": 0.3263,
+      "samples": 8822,
+      "ms_per_crop": 80.1
+    },
+    "gnhk_test_lines": {
+      "cer": 0.3884,
+      "wer": 0.7353,
+      "exact_match": 0.1071,
+      "samples": 1568,
+      "ms_per_crop": 105.2
+    }
+  }
+}

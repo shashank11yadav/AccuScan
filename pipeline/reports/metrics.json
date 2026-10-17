@@ -1,0 +1,64 @@
+{
+  "checkpoint": {
+    "epoch": 23,
+    "val_set": "gnhk-val",
+    "val_cer": 0.17548517026730134
+  },
+  "sets": {
+    "gnhk_test_words": {
+      "greedy": {
+        "cer": 0.2005,
+        "wer": 0.4542,
+        "exact_match": 0.5681,
+        "samples": 8808
+      },
+      "dictionary": {
+        "cer": 0.1796,
+        "wer": 0.3793,
+        "exact_match": 0.6427,
+        "samples": 8808,
+        "fallback_rate": 0.131
+      }
+    },
+    "gnhk_test_lines": {
+      "greedy": {
+        "cer": 0.2153,
+        "wer": 0.5575,
+        "exact_match": 0.1363,
+        "samples": 1563
+      }
+    },
+    "canvas_heldout_fonts": {
+      "greedy": {
+        "cer": 0.0135,
+        "wer": 0.0577,
+        "exact_match": 0.893,
+        "samples": 2000
+      },
+      "dictionary": {
+        "cer": 0.0247,
+        "wer": 0.0944,
+        "exact_match": 0.8145,
+        "samples": 2000,
+        "fallback_rate": 0.115
+      }
+    }
+  },
+  "latency_cpu": {
+    "model_mb": 4.81,
+    "ms_width_128": 3.06,
+    "ms_width_256": 5.97,
+    "ms_width_512": 11.83
+  },
+  "gate": {
+    "canvas_cer": 0.0135,
+    "threshold": 0.15,
+    "defaultMode": "free"
+  },
+  "environment": {
+    "machine": "arm64",
+    "system": "Darwin",
+    "torch": "2.14.1",
+    "onnxruntime": "1.31.0"
+  }
+}
