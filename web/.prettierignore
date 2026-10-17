@@ -5,3 +5,4 @@ public/samples
 playwright-report
 test-results
 package-lock.json
+e2e/fixtures/*.json
