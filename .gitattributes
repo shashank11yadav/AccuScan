@@ -3,6 +3,7 @@
 *.onnx binary
 *.png binary
 *.jpg binary
+*.gif binary
 *.gz binary
 
 # Pipeline output, rewritten by `uv run accuscan export` and `export-fixtures`.
