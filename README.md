@@ -175,7 +175,7 @@ uv sync
 uv run accuscan fonts       # 64 pinned font families, 12 MB, under a minute
 uv run accuscan synth       # 150k training + 3k validation + 2k held-out-font canvas lines, ~3 min
 uv run accuscan gnhk        # GNHK word and line crops, ~5 min
-uv run accuscan train       # best checkpoint in runs/main/best.pt, ~5 h on MPS (--resume continues)
+uv run accuscan train       # best checkpoint in runs/main/best.pt, 5-7 h on an M4 (--resume continues)
 uv run accuscan evaluate    # reports/metrics.json and metrics.md, under a minute
 uv sync --extra baseline
 uv run accuscan baseline    # TrOCR-small on GNHK test, CPU, ~16 min
