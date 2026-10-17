@@ -1,8 +1,10 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const fixture = (name: string) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
+const publicFile = (name: string) => fileURLToPath(new URL(`../public/${name}`, import.meta.url));
 
 /** Draws polyline strokes given in pad-relative [0, 1] coordinates with page.mouse. */
 async function draw(page: Page, strokes: [number, number][][]) {
@@ -63,10 +65,25 @@ test('the production build ships a strict CSP and no CSP violations', async ({ p
   expect(errors.filter((e) => /Content Security Policy|Refused to/.test(e))).toEqual([]);
 });
 
-test('shows the untrained preview notice for the stub model', async ({ page }) => {
+test('the trained model shows its measured error rates and no preview notice', async ({ page }) => {
+  const meta = JSON.parse(readFileSync(publicFile('models/model-meta.json'), 'utf8')) as {
+    metrics: { sets: Record<string, { greedy: { cer: number } }> } | null;
+  };
+  expect(meta.metrics).not.toBeNull();
   await page.goto('./');
-  await expect(page.getByTestId('preview-notice')).toContainText('Untrained preview model');
-  await expect(page.getByText('No accuracy figures yet')).toBeVisible();
+  await modelReady(page);
+  await expect(page.getByTestId('preview-notice')).toHaveCount(0);
+  const table = page.getByRole('table', { name: /Held-out error rates/ });
+  for (const [label, key] of [
+    ['GNHK test, words', 'gnhk_test_words'],
+    ['GNHK test, lines', 'gnhk_test_lines'],
+    ['Canvas style, held-out fonts', 'canvas_heldout_fonts'],
+  ] as const) {
+    const cer = meta.metrics?.sets[key]?.greedy.cer ?? NaN;
+    await expect(table.getByRole('row', { name: new RegExp(`^${label}`) })).toContainText(
+      `${(cer * 100).toFixed(1)}%`,
+    );
+  }
 });
 
 test('drawing strokes produces a reading after a pause', async ({ page }) => {
