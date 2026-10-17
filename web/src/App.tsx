@@ -89,6 +89,15 @@ export function App() {
 
   const meta = ready ? model.meta : null;
 
+  // On one-column layouts the result sits below the eight samples, out of view.
+  const revealResult = () => {
+    if (!window.matchMedia('(max-width: 1023px)').matches) return;
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document
+      .getElementById('result-heading')
+      ?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+  };
+
   return (
     <>
       <a
@@ -244,6 +253,7 @@ export function App() {
                     onImage={(image, sample) => {
                       setExpected(sample.text);
                       run(image, 'samples', mode);
+                      revealResult();
                     }}
                   />
                 )}

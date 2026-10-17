@@ -74,6 +74,10 @@ function Metrics({ meta }: { meta: ModelMeta }) {
           )}
         </tbody>
       </table>
+      <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+        GNHK is photographed handwriting from many writers. The canvas set is synthetic: lines drawn
+        in 10 handwriting fonts kept out of training, not people writing with a mouse.
+      </p>
     </div>
   );
 }
