@@ -1,9 +1,18 @@
-// Screenshots of the production build at desktop and phone widths.
+// Screenshots of the production build at desktop and phone widths: the Write
+// tab with a word drawn in Hershey strokes, a cropped photo, and a sample.
 // Usage: npm run build && npm run preview (in another shell), then npm run screenshot.
 import { chromium } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+import { writeText } from '../e2e/hershey.ts';
 
 const url = process.env.URL ?? 'http://localhost:5471/AccuScan/';
 const out = process.env.OUT ?? 'test-results';
+const note = fileURLToPath(new URL('../e2e/fixtures/note.png', import.meta.url));
+
+async function done(page) {
+  await page.waitForSelector('[data-testid=result][data-status=done]', { timeout: 15000 });
+}
+
 const browser = await chromium.launch();
 for (const [name, width, height] of [
   ['desktop', 1280, 900],
@@ -11,56 +20,28 @@ for (const [name, width, height] of [
 ]) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.goto(url);
-  await page.getByTestId('write-pad').waitFor();
-  await page.waitForFunction(() => document.querySelector('[data-testid=preview-notice]') !== null);
-  await page.getByTestId('write-pad').scrollIntoViewIfNeeded();
-  const box = await page.getByTestId('write-pad').boundingBox();
-  if (box) {
-    const strokes = [
-      [
-        [0.1, 0.35],
-        [0.1, 0.75],
-      ],
-      [
-        [0.1, 0.55],
-        [0.2, 0.5],
-        [0.22, 0.75],
-      ],
-      [
-        [0.3, 0.55],
-        [0.38, 0.52],
-        [0.36, 0.75],
-        [0.3, 0.7],
-        [0.38, 0.62],
-      ],
-      [
-        [0.46, 0.3],
-        [0.46, 0.75],
-      ],
-      [
-        [0.53, 0.3],
-        [0.53, 0.75],
-      ],
-      [
-        [0.65, 0.55],
-        [0.6, 0.65],
-        [0.65, 0.75],
-        [0.7, 0.65],
-        [0.65, 0.55],
-      ],
-    ];
-    for (const stroke of strokes) {
-      const [first, ...rest] = stroke;
-      await page.mouse.move(box.x + first[0] * box.width, box.y + first[1] * box.height);
-      await page.mouse.down();
-      for (const [x, y] of rest) {
-        await page.mouse.move(box.x + x * box.width, box.y + y * box.height, { steps: 8 });
-      }
-      await page.mouse.up();
-    }
-    await page.waitForSelector('[data-testid=result][data-status=done]', { timeout: 15000 });
-  }
-  await page.screenshot({ path: `${out}/screenshot-${name}.png`, fullPage: true });
+  await page.getByText('Write, upload or pick a sample.').waitFor({ timeout: 30000 });
+
+  await writeText(page, 'hello', 'scripts', { xHeightPx: name === 'mobile' ? 26 : 34 });
+  await done(page);
+  await page.screenshot({ path: `${out}/write-${name}.png`, fullPage: true });
+
+  await page.getByRole('tab', { name: 'Photo' }).click();
+  await page.getByTestId('photo-input').setInputFiles(note);
+  const canvas = page.getByTestId('photo-canvas');
+  await canvas.scrollIntoViewIfNeeded();
+  const box = await canvas.boundingBox();
+  await page.mouse.move(box.x + box.width * 0.03, box.y + box.height * 0.08);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.45, { steps: 8 });
+  await page.mouse.up();
+  await done(page);
+  await page.screenshot({ path: `${out}/upload-${name}.png`, fullPage: true });
+
+  await page.getByRole('tab', { name: 'Samples' }).click();
+  await page.getByRole('button', { name: /hello world/ }).click();
+  await done(page);
+  await page.screenshot({ path: `${out}/samples-${name}.png`, fullPage: true });
   await page.close();
 }
 await browser.close();

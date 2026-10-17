@@ -19,7 +19,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "screenshot": "node scripts/screenshot.mjs"
+    "screenshot": "node scripts/screenshot.mjs",
+    "demo-gif": "node scripts/record-demo.mjs"
   },
   "dependencies": {
     "onnxruntime-web": "1.30.0",
