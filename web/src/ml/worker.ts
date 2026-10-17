@@ -1,11 +1,11 @@
 /// <reference lib="webworker" />
 /**
- * Runs the model off the main thread: onnxruntime-web with the WebGPU execution
- * provider when the browser has a GPU adapter, WebAssembly otherwise (and as
- * the fallback if a WebGPU session cannot be created). Decoding runs here too,
- * so the dictionary trie never blocks the page.
+ * Runs the model off the main thread with onnxruntime-web's WebAssembly build.
+ * WebGPU is deliberately not used: the int8 operators have no WebGPU kernels,
+ * and its runtime is 27 MB against 14 MB for the plain WebAssembly one.
+ * Decoding runs here too, so the dictionary trie never blocks the page.
  */
-import type { InferenceSession, Tensor } from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/wasm';
 import { beamSearch, greedyDecode, NUM_CLASSES, type Lexicon } from './decode';
 import { loadLexicon } from './lexicon';
 import { INPUT_HEIGHT } from './preprocess';
@@ -13,24 +13,13 @@ import type { Backend, WorkerRequest, WorkerResponse } from './protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
 
-type Ort = typeof import('onnxruntime-web');
-let session: InferenceSession | null = null;
-let ort: Ort | null = null;
+let session: ort.InferenceSession | null = null;
 let lexiconUrl = '';
 let lexicon: Promise<Lexicon> | null = null;
 
 const post = (message: WorkerResponse) => {
   self.postMessage(message);
 };
-
-async function hasWebGpu(): Promise<boolean> {
-  if (!('gpu' in navigator)) return false;
-  try {
-    return (await navigator.gpu.requestAdapter()) !== null;
-  } catch {
-    return false;
-  }
-}
 
 async function fetchModel(url: string): Promise<Uint8Array> {
   const response = await fetch(url);
@@ -39,28 +28,9 @@ async function fetchModel(url: string): Promise<Uint8Array> {
 }
 
 async function createSession(model: Uint8Array): Promise<Backend> {
-  if (await hasWebGpu()) {
-    try {
-      const gpuOrt = await import('onnxruntime-web/webgpu');
-      gpuOrt.env.wasm.numThreads = 1;
-      // The int8 operators have no WebGPU kernels and run on the WebAssembly
-      // provider inside the same session; onnxruntime warns about that split.
-      gpuOrt.env.logLevel = 'error';
-      session = await gpuOrt.InferenceSession.create(model, {
-        executionProviders: ['webgpu', 'wasm'],
-        logSeverityLevel: 3,
-      });
-      ort = gpuOrt;
-      return 'webgpu';
-    } catch {
-      // Fall through to WebAssembly.
-    }
-  }
-  const wasmOrt = await import('onnxruntime-web/wasm');
   // GitHub Pages cannot send the headers that enable threads (cross-origin isolation).
-  wasmOrt.env.wasm.numThreads = 1;
-  session = await wasmOrt.InferenceSession.create(model, { executionProviders: ['wasm'] });
-  ort = wasmOrt;
+  ort.env.wasm.numThreads = 1;
+  session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'] });
   return 'wasm';
 }
 
@@ -75,11 +45,11 @@ async function init(modelUrl: string, wordsUrl: string) {
 }
 
 async function recognise(request: Extract<WorkerRequest, { type: 'recognise' }>) {
-  if (!session || !ort) throw new Error('the model is not loaded');
+  if (!session) throw new Error('the model is not loaded');
   const started = performance.now();
   const image = new ort.Tensor('float32', request.input, [1, 1, INPUT_HEIGHT, request.width]);
   const outputs = await session.run({ image });
-  const out: Tensor | undefined = outputs['log_probs'];
+  const out: ort.Tensor | undefined = outputs['log_probs'];
   if (!out || out.dims[2] !== NUM_CLASSES) throw new Error('unexpected model output');
   const data = (await out.getData()) as Float32Array;
   const logProbs = { data, frames: out.dims[0] ?? 0, classes: NUM_CLASSES };

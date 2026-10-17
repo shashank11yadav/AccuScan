@@ -1,6 +1,7 @@
 import type { DecodeMode } from './meta';
 
-export type Backend = 'webgpu' | 'wasm';
+/** The only runtime: onnxruntime-web's WebAssembly build. */
+export type Backend = 'wasm';
 
 export interface DecoderSettings {
   beamWidth: number;

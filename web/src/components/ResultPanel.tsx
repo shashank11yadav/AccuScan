@@ -159,9 +159,7 @@ export function ResultPanel({ state, mode, onModeChange, backend, expected, mode
               {backend && (
                 <div className="flex gap-1">
                   <dt>Runtime</dt>
-                  <dd className="font-medium text-ink">
-                    {backend === 'webgpu' ? 'WebGPU' : 'WebAssembly'}
-                  </dd>
+                  <dd className="font-medium text-ink">WebAssembly</dd>
                 </div>
               )}
             </dl>
