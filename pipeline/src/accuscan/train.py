@@ -57,6 +57,20 @@ def pick_device(name: str) -> torch.device:
     return torch.device("cpu")
 
 
+# Every (batch, width) shape leaves buffers in the MPS allocator's cache; with
+# width buckets up to 1024 the cache grew past 18 GB on a 16 GB machine and the
+# run slowed to a crawl in swap. Releasing it every few hundred steps keeps the
+# footprint flat without changing any numbers.
+CACHE_RELEASE_STEPS = 200
+
+
+def release_cached_memory(device: torch.device) -> None:
+    if device.type == "mps":
+        torch.mps.empty_cache()
+    elif device.type == "cuda":
+        torch.cuda.empty_cache()
+
+
 def seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
     np.random.seed(seed)  # noqa: NPY002 - also seeds any library using the global state
@@ -238,9 +252,12 @@ def train(
             scheduler.step()
             losses.append(float(loss.detach()))
             step += 1
+            if step % CACHE_RELEASE_STEPS == 0:
+                release_cached_memory(device)
             if max_steps is not None and step >= max_steps:
                 break
         rates = greedy_cer(model, val, device)
+        release_cached_memory(device)
         record = {
             "epoch": epoch,
             "step": step,
