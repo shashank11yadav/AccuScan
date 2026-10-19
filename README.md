@@ -4,8 +4,6 @@ Handwriting recognition that runs in your browser. Write a word on the canvas, o
 
 This repository holds the whole path: synthetic and real training data, training on my Apple-silicon laptop, evaluation on held-out data against a TrOCR baseline, and a 4.8 MB int8 ONNX model served from a static site.
 
-Built by [Shashank Yadav](https://github.com/shashank11yadav).
-
 ![The demo: "hello" written in joined-up script, then "the quick fox" in print one word at a time, with the reading updating after each pause](docs/demo.gif)
 
 I recorded the GIF with a script rather than by hand: Playwright moves the mouse along the pen strokes of the public-domain Hershey fonts (`web/scripts/record-demo.mjs`), so the canvas gets the same pointer events a visitor's mouse would.
