@@ -10,7 +10,7 @@ import {
   type ModelInput,
 } from '../ml/preprocess';
 import type { Backend, Recognition } from '../ml/protocol';
-import { LEXICON_URL, META_URL, MODEL_URL } from './links';
+import { META_URL } from './links';
 
 export type ModelState =
   | { status: 'loading' }
@@ -60,7 +60,7 @@ export function useModel() {
     let client: ModelClient | null = null;
     loadMeta(controller.signal)
       .then(async (meta) => {
-        client = new ModelClient(MODEL_URL, LEXICON_URL);
+        client = new ModelClient();
         const backend = await client.ready;
         if (controller.signal.aborted) return;
         clientRef.current = client;

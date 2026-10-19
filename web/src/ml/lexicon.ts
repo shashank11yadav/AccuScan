@@ -1,15 +1,18 @@
+import { LEXICON_URL } from '../lib/links';
 import { Lexicon } from './decode';
 
 const isGzip = (bytes: Uint8Array) => bytes[0] === 0x1f && bytes[1] === 0x8b;
 
 /**
  * Load the bundled words.txt.gz ("word<TAB>count" lines) and build the trie.
+ * The URL is fixed at build time and never comes from a message, so the worker
+ * cannot be pointed at another file or origin.
  * Some servers send .gz files with Content-Encoding: gzip, so the browser has
  * already inflated them; GitHub Pages sends the raw archive. Both are handled
  * by checking the gzip magic bytes.
  */
-export async function loadLexicon(url: string, fetchImpl: typeof fetch = fetch): Promise<Lexicon> {
-  const response = await fetchImpl(url);
+export async function loadLexicon(fetchImpl: typeof fetch = fetch): Promise<Lexicon> {
+  const response = await fetchImpl(LEXICON_URL);
   if (!response.ok) throw new Error(`could not load the word list (HTTP ${response.status})`);
   const bytes = new Uint8Array(await response.arrayBuffer());
   let text: string;

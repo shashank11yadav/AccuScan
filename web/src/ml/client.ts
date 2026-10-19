@@ -18,7 +18,7 @@ export class ModelClient {
   >();
   readonly ready: Promise<Backend>;
 
-  constructor(modelUrl: string, lexiconUrl: string) {
+  constructor() {
     this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     this.ready = new Promise<Backend>((resolve, reject) => {
       this.worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
@@ -45,7 +45,7 @@ export class ModelClient {
         reject(new Error(event.message || 'the model worker failed to start'));
       };
     });
-    this.send({ type: 'init', modelUrl, lexiconUrl });
+    this.send({ type: 'init' });
   }
 
   private send(request: WorkerRequest, transfer: Transferable[] = []) {
