@@ -243,6 +243,33 @@ test('an unsupported upload is rejected with a message', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('JPEG, PNG or WebP');
 });
 
+test('a small file that declares a huge image is rejected before decoding', async ({ page }) => {
+  // A real 50000 x 50000 PNG of one colour compresses to about a megabyte;
+  // the header alone is enough to tell it would need 10 GB once decoded.
+  const u32 = (v: number) => [v >>> 24, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
+  const header = [
+    ...[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+    ...u32(13),
+    ...[0x49, 0x48, 0x44, 0x52],
+    ...u32(50_000),
+    ...u32(50_000),
+    8,
+    0,
+    0,
+    0,
+    0,
+  ];
+  await page.goto('./');
+  await page.getByRole('tab', { name: 'Photo' }).click();
+  await page.getByTestId('photo-input').setInputFiles({
+    name: 'bomb.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(header),
+  });
+  await expect(page.getByRole('alert')).toContainText('50000 × 50000 pixels');
+  await expect(page.getByTestId('photo-canvas')).toHaveCount(0);
+});
+
 test('a photo can be cropped to one line and read', async ({ page }) => {
   await page.goto('./');
   await modelReady(page);

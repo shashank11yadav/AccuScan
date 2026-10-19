@@ -7,6 +7,12 @@ import type { GrayImage } from './preprocess';
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 export const MAX_PHOTO_SIDE = 2000;
+/**
+ * Decoding happens at full size before any downscaling, so the pixel count is
+ * checked from the file header first. 50 MP covers phone cameras' default
+ * modes; a few kilobytes of PNG can otherwise declare 50000 x 50000 pixels.
+ */
+export const MAX_PHOTO_PIXELS = 50_000_000;
 export const MIN_SELECTION = { width: 16, height: 8 };
 /** Wider than this (width / height) is more than one model input can read clearly. */
 export const MAX_SELECTION_ASPECT = 32;
@@ -88,6 +94,10 @@ export function readJpegInfo(bytes: Uint8Array): JpegInfo | null {
   let offset = 2;
   while (offset + 4 <= bytes.length) {
     if (bytes[offset] !== 0xff) return null;
+    if (bytes[offset + 1] === 0xff) {
+      offset++; // fill byte
+      continue;
+    }
     const marker = bytes[offset + 1] ?? 0;
     const length = view.getUint16(offset + 2);
     const segment = offset + 4;
@@ -105,6 +115,65 @@ export function readJpegInfo(bytes: Uint8Array): JpegInfo | null {
     offset += 2 + length;
   }
   return null;
+}
+
+export interface ImageSize {
+  width: number;
+  height: number;
+}
+
+const ascii = (bytes: Uint8Array, offset: number, text: string) =>
+  startsWith(
+    bytes,
+    Array.from(text, (c) => c.charCodeAt(0)),
+    offset,
+  );
+
+/** Pixel size from the file header without decoding, or null if it cannot be read. */
+export function readImageSize(bytes: Uint8Array, type: ImageType): ImageSize | null {
+  if (sniffImageType(bytes) !== type) return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (type === 'image/jpeg') {
+    const info = readJpegInfo(bytes);
+    return info && { width: info.width, height: info.height };
+  }
+  if (type === 'image/png') {
+    if (bytes.length < 24 || !ascii(bytes, 12, 'IHDR')) return null;
+    return { width: view.getUint32(16), height: view.getUint32(20) };
+  }
+  const u24 = (at: number) => view.getUint16(at, true) | ((bytes[at + 2] ?? 0) << 16);
+  if (ascii(bytes, 12, 'VP8X') && bytes.length >= 30) {
+    return { width: u24(24) + 1, height: u24(27) + 1 };
+  }
+  if (ascii(bytes, 12, 'VP8 ') && bytes.length >= 30 && startsWith(bytes, [0x9d, 0x01, 0x2a], 23)) {
+    return { width: view.getUint16(26, true) & 0x3fff, height: view.getUint16(28, true) & 0x3fff };
+  }
+  if (ascii(bytes, 12, 'VP8L') && bytes.length >= 25 && bytes[20] === 0x2f) {
+    const bits = view.getUint32(21, true);
+    return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
+  }
+  return null;
+}
+
+export type DimensionCheck =
+  { ok: true } | { ok: false; reason: 'unreadable' | 'too-many-pixels'; message: string };
+
+export function validateDimensions(size: ImageSize | null): DimensionCheck {
+  if (!size || size.width < 1 || size.height < 1) {
+    return {
+      ok: false,
+      reason: 'unreadable',
+      message: 'That image could not be opened. It may be damaged.',
+    };
+  }
+  if (size.width * size.height > MAX_PHOTO_PIXELS) {
+    return {
+      ok: false,
+      reason: 'too-many-pixels',
+      message: `That image is ${size.width} × ${size.height} pixels. The limit is 50 megapixels.`,
+    };
+  }
+  return { ok: true };
 }
 
 export function orientedSize(width: number, height: number, orientation: number) {

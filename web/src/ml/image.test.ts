@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_PHOTO_PIXELS,
   MAX_UPLOAD_BYTES,
   MAX_PHOTO_SIDE,
   applyOrientation,
   fitWithin,
   isBlankCanvas,
   orientedSize,
+  readImageSize,
   readJpegInfo,
   sniffImageType,
+  validateDimensions,
   validateSelection,
   validateUpload,
 } from './image';
@@ -104,6 +107,83 @@ describe('readJpegInfo', () => {
   });
   it('ignores out-of-range orientation values', () => {
     expect(readJpegInfo(jpeg(9, 3, 2))?.orientation).toBe(1);
+  });
+  it('skips fill bytes before a marker', () => {
+    const plain = jpeg(null, 30, 20);
+    const padded = new Uint8Array([0xff, 0xd8, 0xff, 0xff, ...plain.slice(2)]);
+    expect(readJpegInfo(padded)).toEqual({ width: 30, height: 20, orientation: 1 });
+  });
+});
+
+const be32 = (v: number) => [v >>> 24, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
+const le16 = (v: number) => [v & 0xff, v >> 8];
+const le24 = (v: number) => [v & 0xff, (v >> 8) & 0xff, v >> 16];
+const ascii = (s: string) => Array.from(s, (c) => c.charCodeAt(0));
+
+/** PNG signature and IHDR, which is all a header check reads. */
+const png = (width: number, height: number) =>
+  new Uint8Array([...PNG, ...be32(13), ...ascii('IHDR'), ...be32(width), ...be32(height), 8, 0]);
+const riff = (chunk: number[]) =>
+  new Uint8Array([...ascii('RIFF'), ...be32(0), ...ascii('WEBP'), ...chunk]);
+const webpLossy = (width: number, height: number) =>
+  riff([...ascii('VP8 '), ...be32(0), 0, 0, 0, 0x9d, 0x01, 0x2a, ...le16(width), ...le16(height)]);
+function webpLossless(width: number, height: number) {
+  const bits = (width - 1) | ((height - 1) << 14);
+  return riff([
+    ...ascii('VP8L'),
+    ...be32(0),
+    0x2f,
+    bits & 0xff,
+    (bits >> 8) & 0xff,
+    (bits >> 16) & 0xff,
+    bits >>> 24,
+  ]);
+}
+const webpExtended = (width: number, height: number) =>
+  riff([...ascii('VP8X'), ...be32(0), 0, 0, 0, 0, ...le24(width - 1), ...le24(height - 1)]);
+
+describe('readImageSize', () => {
+  it('reads PNG, WebP (lossy, lossless, extended) and JPEG sizes from the header', () => {
+    expect(readImageSize(png(640, 480), 'image/png')).toEqual({ width: 640, height: 480 });
+    expect(readImageSize(webpLossy(300, 200), 'image/webp')).toEqual({ width: 300, height: 200 });
+    expect(readImageSize(webpLossless(16383, 2), 'image/webp')).toEqual({
+      width: 16383,
+      height: 2,
+    });
+    expect(readImageSize(webpExtended(16000, 9000), 'image/webp')).toEqual({
+      width: 16000,
+      height: 9000,
+    });
+    expect(readImageSize(jpeg(6, 4032, 3024), 'image/jpeg')).toEqual({ width: 4032, height: 3024 });
+  });
+
+  it('returns null for truncated or inconsistent headers', () => {
+    expect(readImageSize(png(10, 10).slice(0, 20), 'image/png')).toBeNull();
+    expect(readImageSize(riff(ascii('ALPH')), 'image/webp')).toBeNull();
+    expect(readImageSize(new Uint8Array([0xff, 0xd8, 0xff]), 'image/jpeg')).toBeNull();
+    expect(readImageSize(png(10, 10), 'image/jpeg')).toBeNull();
+  });
+});
+
+describe('validateDimensions', () => {
+  it('accepts phone-camera photos', () => {
+    expect(validateDimensions({ width: 8160, height: 6120 })).toEqual({ ok: true }); // 50 MP
+  });
+
+  it('rejects images that would decode to too many pixels (decompression bombs)', () => {
+    // A small PNG can declare 50000 x 50000 pixels: 10 GB once decoded to RGBA.
+    const result = validateDimensions(readImageSize(png(50_000, 50_000), 'image/png'));
+    expect(result).toMatchObject({ ok: false, reason: 'too-many-pixels' });
+    if (!result.ok) expect(result.message).toMatch(/50 megapixels/);
+    expect(validateDimensions({ width: MAX_PHOTO_PIXELS + 1, height: 1 }).ok).toBe(false);
+  });
+
+  it('rejects images whose size cannot be read', () => {
+    expect(validateDimensions(null)).toMatchObject({ ok: false, reason: 'unreadable' });
+    expect(validateDimensions({ width: 0, height: 10 })).toMatchObject({
+      ok: false,
+      reason: 'unreadable',
+    });
   });
 });
 

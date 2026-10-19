@@ -21,7 +21,8 @@ chain and untrusted image input:
 - The pipeline downloads fonts and text from pinned commits or URLs and checks
   a SHA-256 for every file before using it. Archives are read in place and only
   expected member names are opened.
-- The frontend checks an upload's size and magic bytes before decoding it,
+- The frontend checks an upload's size, magic bytes and declared pixel count
+  (at most 50 megapixels, read from the header) before decoding it,
   downscales large photos before any pixel work, and ships a
   Content-Security-Policy that allows only same-origin scripts, styles, workers
   and fetches (plus `'wasm-unsafe-eval'`, which WebAssembly needs).

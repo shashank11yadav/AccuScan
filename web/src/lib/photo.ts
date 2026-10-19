@@ -1,4 +1,12 @@
-import { applyOrientation, fitWithin, readJpegInfo, validateUpload, type Rect } from '../ml/image';
+import {
+  applyOrientation,
+  fitWithin,
+  readImageSize,
+  readJpegInfo,
+  validateDimensions,
+  validateUpload,
+  type Rect,
+} from '../ml/image';
 import { rgbaToGray, type GrayImage } from '../ml/preprocess';
 
 export class UploadError extends Error {
@@ -10,6 +18,8 @@ export class UploadError extends Error {
 
 /**
  * Validate, decode, orient and downscale a photo to greyscale (long side <= 2000 px).
+ * The type comes from the magic bytes and the pixel count from the header, both
+ * checked before the browser decodes anything.
  * Browsers apply EXIF orientation when decoding; if one does not (detected by
  * the decoded size still matching the stored, unrotated size), it is applied here.
  */
@@ -17,8 +27,10 @@ export async function decodePhoto(file: File): Promise<GrayImage> {
   const head = new Uint8Array(await file.slice(0, 64).arrayBuffer());
   const check = validateUpload({ size: file.size, head });
   if (!check.ok) throw new UploadError(check.message);
-  const info =
-    check.type === 'image/jpeg' ? readJpegInfo(new Uint8Array(await file.arrayBuffer())) : null;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const dimensions = validateDimensions(readImageSize(bytes, check.type));
+  if (!dimensions.ok) throw new UploadError(dimensions.message);
+  const info = check.type === 'image/jpeg' ? readJpegInfo(bytes) : null;
   let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
