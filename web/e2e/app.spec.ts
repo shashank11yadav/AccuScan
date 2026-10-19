@@ -140,6 +140,86 @@ test('dictionary mode switches the decoder', async ({ page }) => {
   });
 });
 
+interface Box {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/** Track, knob and label boxes of the dictionary switch, plus the knob/track contrast. */
+function switchGeometry(page: Page) {
+  return page.getByRole('switch', { name: 'Dictionary words' }).evaluate((el) => {
+    const box = (r: DOMRect) => ({ left: r.left, right: r.right, top: r.top, bottom: r.bottom });
+    const track = el.querySelector(':scope > span[aria-hidden="true"]');
+    const knob = track?.firstElementChild;
+    const label = Array.from(el.childNodes).find((n) => n.textContent === 'Dictionary words');
+    if (!track || !knob || !label) throw new Error('unexpected switch markup');
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const luminance = (css: string) => {
+      const [r = 0, g = 0, b = 0] = (css.match(/[\d.]+/g) ?? []).map(Number).map((v) => {
+        const c = v / 255;
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const a = luminance(getComputedStyle(knob).backgroundColor);
+    const b = luminance(getComputedStyle(track).backgroundColor);
+    return {
+      track: box(track.getBoundingClientRect()),
+      knob: box(knob.getBoundingClientRect()),
+      label: box(range.getBoundingClientRect()),
+      contrast: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
+    };
+  });
+}
+
+function expectInside(inner: Box, outer: Box) {
+  expect(inner.left).toBeGreaterThanOrEqual(outer.left - 0.5);
+  expect(inner.right).toBeLessThanOrEqual(outer.right + 0.5);
+  expect(inner.top).toBeGreaterThanOrEqual(outer.top - 0.5);
+  expect(inner.bottom).toBeLessThanOrEqual(outer.bottom + 0.5);
+}
+
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 1280]) {
+    test(`the dictionary switch keeps its knob in the track (${colorScheme}, ${width} px)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto('./');
+      const toggle = page.getByRole('switch', { name: 'Dictionary words' });
+      await expect(toggle).toHaveAttribute('aria-checked', 'false');
+      for (const checked of [false, true]) {
+        await expect(toggle).toHaveAttribute('aria-checked', String(checked));
+        const g = await switchGeometry(page);
+        expectInside(g.knob, g.track);
+        expect(g.track.right).toBeLessThanOrEqual(g.label.left);
+        const knobCentre = (g.knob.left + g.knob.right) / 2;
+        const trackCentre = (g.track.left + g.track.right) / 2;
+        if (checked) expect(knobCentre).toBeGreaterThan(trackCentre);
+        else expect(knobCentre).toBeLessThan(trackCentre);
+        expect(g.contrast).toBeGreaterThanOrEqual(3);
+        if (!checked) await toggle.click();
+      }
+    });
+  }
+}
+
+test('the dictionary switch works from the keyboard and shows focus', async ({ page }) => {
+  await page.goto('./');
+  const toggle = page.getByRole('switch', { name: 'Dictionary words' });
+  await toggle.focus();
+  await page.keyboard.press('Space');
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Enter');
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  const outline = await toggle.evaluate((el) => getComputedStyle(el).outlineStyle);
+  expect(outline).not.toBe('none');
+});
+
 test('a missing model shows an error with a working Retry', async ({ page }) => {
   let block = true;
   await page.route('**/models/model.onnx', (route) =>

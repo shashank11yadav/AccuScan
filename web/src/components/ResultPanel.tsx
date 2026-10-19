@@ -85,15 +85,19 @@ export function ResultPanel({ state, mode, onModeChange, backend, expected, mode
           onClick={() => {
             onModeChange(dictionary ? 'free' : 'dictionary');
           }}
-          className="group inline-flex items-center gap-2 text-sm font-medium"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full text-sm font-medium whitespace-nowrap"
         >
+          {/* Flexbox places the knob. An absolutely positioned knob without a
+              left offset follows the button's centred text and leaves the track. */}
           <span
             aria-hidden="true"
-            className={`relative h-5 w-9 rounded-full transition-colors ${dictionary ? 'bg-accent' : 'bg-[#a8a29a]'}`}
+            className={`inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors motion-reduce:transition-none ${
+              dictionary ? 'bg-accent' : 'bg-switch-off'
+            }`}
           >
             <span
-              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                dictionary ? 'translate-x-4' : 'translate-x-0.5'
+              className={`h-4 w-4 rounded-full bg-surface shadow-sm transition-transform motion-reduce:transition-none ${
+                dictionary ? 'translate-x-4' : 'translate-x-0'
               }`}
             />
           </span>

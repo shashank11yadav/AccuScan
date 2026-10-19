@@ -9,6 +9,8 @@
   --ink: #1b1a17;
   --ink-muted: #57534e;
   --line: #ddd8ce;
+  /* Off-state switch track: at least 3:1 against the surface and the knob. */
+  --switch-off: #79736a;
   --accent: #2446a6;
   --accent-ink: #ffffff;
   --accent-soft: #e4eafa;
@@ -33,6 +35,7 @@
     --ink: #eeebe4;
     --ink-muted: #b4aea4;
     --line: #38352f;
+    --switch-off: #837d74;
     --accent: #8fa8ff;
     --accent-ink: #0d1530;
     --accent-soft: #1b2442;
@@ -55,6 +58,7 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-line: var(--line);
+  --color-switch-off: var(--switch-off);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
