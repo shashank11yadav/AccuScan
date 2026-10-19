@@ -47,6 +47,8 @@ Split = Literal["train", "test"]
 SPECIAL_TOKENS = frozenset({"%math%", "%SC%", "%NA%"})
 ARCHIVES: dict[Split, str] = {"train": "train_data.zip", "test": "test_data.zip"}
 MAX_IMAGE_BYTES = 40 * 1024 * 1024
+# Checked against the size a zip member declares, before it is decompressed.
+MAX_MEMBER_BYTES = MAX_IMAGE_BYTES
 CROP_MARGIN = 0.08  # of the word height, so ascenders cut by a tight polygon survive
 
 Quad = NDArray[np.float64]  # [4, 2] ordered TL, TR, BR, BL
@@ -150,7 +152,10 @@ def _members(root: Path, split: Split) -> Iterator[tuple[str, Callable[[str], by
                 stem = str(path.with_suffix(""))
 
                 def read(suffix: str, stem: str = stem) -> bytes:
-                    return zf.read(stem + suffix)
+                    info = zf.getinfo(stem + suffix)
+                    if info.file_size > MAX_MEMBER_BYTES:
+                        raise ValueError(f"{info.filename}: too large ({info.file_size} bytes)")
+                    return zf.read(info)
 
                 yield path.stem, read
     elif folder.is_dir():

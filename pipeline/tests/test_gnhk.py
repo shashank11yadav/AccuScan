@@ -134,3 +134,12 @@ def test_fixture_json_uses_the_published_keys(gnhk_root: Path) -> None:
         anns = json.loads(zf.read("train/eng_EU_001.json"))
     assert set(anns[0]) == {"text", "polygon", "line_idx", "type"}
     assert set(anns[0]["polygon"]) == {f"{a}{i}" for i in range(4) for a in "xy"}
+
+
+def test_archive_members_over_the_size_limit_are_not_read(
+    gnhk_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The declared size is checked before decompressing, so a zip bomb is refused.
+    monkeypatch.setattr("accuscan.gnhk.MAX_MEMBER_BYTES", 64)
+    with pytest.raises(ValueError, match="too large"):
+        next(iter_pages(gnhk_root, "test"))
