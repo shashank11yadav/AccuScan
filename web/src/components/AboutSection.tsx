@@ -16,7 +16,7 @@ const STEPS = [
   },
   {
     title: 'Decode',
-    body: 'CTC decoding collapses the column scores into text. Dictionary mode runs a beam search that keeps every word in a 50,000-word list.',
+    body: 'CTC decoding collapses the column scores into text. Dictionary mode runs a beam search that only accepts words from a 50,000-word list.',
   },
 ] as const;
 
