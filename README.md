@@ -156,13 +156,6 @@ Making training resumable before the long run paid off here. Training writes `ru
 
 Drawings and photos are processed in the page and in a Web Worker. Nothing is uploaded, stored or logged; there are no cookies and no third-party requests. The production build ships a Content-Security-Policy that allows only same-origin scripts, styles, workers and fetches, plus `'wasm-unsafe-eval'` for WebAssembly.
 
-## What I would do next
-
-- Train for longer. Validation CER was still falling at epoch 23, and the run stopped at its 24-epoch cap.
-- Collect real mouse, finger and stylus handwriting, even a few hundred labelled lines, to measure what the synthetic canvas set cannot, and fine-tune on part of it.
-- Fine-tune TrOCR-small on GNHK train, so the comparison above becomes one between architectures and not only between off-the-shelf models.
-- Find text lines on a page, so a photo no longer needs a box drawn around each line.
-
 ## v1 to v2
 
 My first version of this repository was a single notebook (`OCR.ipynb`, still in the git history) that fine-tuned NAVER's Donut (`naver-clova-ix/donut-base`) with PyTorch Lightning. The notebook has no saved outputs and was never run end to end, so the accuracy figures in the old README could not be reproduced. Looking at it again, it also had a training bug: the tokenizer's pad token was set to the end-of-sequence token, and padding was then masked to -100 in the labels, so the end-of-sequence token was masked too and the model could never learn to stop generating. Its accuracy metric compared characters and words by position rather than by edit distance, so a single missing letter early in a line counted everything after it as wrong.
