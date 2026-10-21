@@ -13,7 +13,7 @@ import { ResultPanel } from './components/ResultPanel';
 import { SampleGallery } from './components/SampleGallery';
 import { UploadPanel } from './components/UploadPanel';
 import { WritePad } from './components/WritePad';
-import { REPO_URL } from './lib/links';
+import { PORTFOLIO_URL, REPO_URL } from './lib/links';
 import { useModel, type ReadState } from './lib/useModel';
 import { isUntrained, type DecodeMode } from './ml/meta';
 import type { GrayImage } from './ml/preprocess';
@@ -282,7 +282,13 @@ export function App() {
 
       <footer className="border-t border-line/80">
         <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-6 text-sm text-ink-muted sm:flex-row sm:px-6">
-          <p>AccuScan by Shashank Yadav. MIT licence.</p>
+          <p>
+            AccuScan by Shashank Yadav ·{' '}
+            <a href={PORTFOLIO_URL} className="underline underline-offset-2 hover:text-ink">
+              shashankyadav.dev
+            </a>{' '}
+            · MIT licence.
+          </p>
           <p className="sm:ml-auto">
             GNHK dataset © GoodNotes, CC BY 4.0. Fonts under the SIL Open Font License.
           </p>

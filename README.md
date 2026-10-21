@@ -10,6 +10,8 @@ I recorded the GIF with a script rather than by hand: Playwright moves the mouse
 
 **Live demo:** https://shashank11yadav.github.io/AccuScan/ (GitHub Pages, deployed from `main`)
 
+Write-up and other projects: [shashankyadav.dev/work/accuscan](https://www.shashankyadav.dev/work/accuscan)
+
 ## How it works
 
 ```mermaid
